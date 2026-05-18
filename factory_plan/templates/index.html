@@ -7,11 +7,12 @@
         <p class="muted">Зведення завантаження етапів після розрахунку плану.</p>
     </div>
     <div class="actions">
-        <button type="button">Перерахувати план</button>
+        <button id="recalculate-plan" type="button">Перерахувати план</button>
     </div>
 </header>
 
 <section class="panel">
+    <div id="plan-status" class="status muted"></div>
     <table>
         <thead>
             <tr>
@@ -31,9 +32,20 @@
 {% block scripts %}
 <script>
     const columns = ["plan_date", "operation", "capacity_hours", "planned_hours", "overflow_hours", "door_count"];
-    FactoryPlan.loadJson("/api/plan/load")
-        .then(rows => FactoryPlan.renderRows(document.querySelector("#plan-load-body"), rows, columns))
-        .catch(() => FactoryPlan.renderRows(document.querySelector("#plan-load-body"), [], columns));
+    const body = document.querySelector("#plan-load-body");
+    const status = document.querySelector("#plan-status");
+
+    async function refreshPlan() {
+        const rows = await FactoryPlan.loadJson("/api/plan/load");
+        FactoryPlan.renderRows(body, rows, columns);
+    }
+
+    document.querySelector("#recalculate-plan").addEventListener("click", async () => {
+        const result = await FactoryPlan.loadJson("/api/plan/recalculate", {method: "POST"});
+        status.textContent = `Операцій: ${result.operation_count}; днів: ${result.day_count}; перевищень: ${result.overflow_count}`;
+        await refreshPlan();
+    });
+
+    refreshPlan().catch(() => FactoryPlan.renderRows(body, [], columns));
 </script>
 {% endblock %}
-

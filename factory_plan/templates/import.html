@@ -4,36 +4,88 @@
 <header class="page-header">
     <div>
         <h1>Імпорт</h1>
-        <p class="muted">Завантаження файлу дверей і попередня перевірка колонок.</p>
+        <p class="muted">Основний формат обміну з 1C - JSON. TSV/CSV залишений для перевірки старих файлів.</p>
+    </div>
+    <div class="actions">
+        <button id="import-folder" type="button">Імпортувати з каталогу</button>
+        <button id="clear-doors" type="button" class="danger">Очистити двері і план</button>
     </div>
 </header>
 
 <section class="panel">
-    <form id="import-form">
-        <input id="import-file" name="file" type="file" accept=".txt,.tsv,.csv">
-        <button type="submit">Перевірити файл</button>
+    <form id="json-import-form" class="grid-form">
+        <input id="json-import-file" name="file" type="file" accept=".json">
+        <button type="submit">Імпортувати JSON</button>
     </form>
+
+    <form id="import-form" class="grid-form">
+        <input id="import-file" name="file" type="file" accept=".txt,.tsv,.csv">
+        <button type="submit" name="action" value="preview" class="secondary">Перевірити TSV/CSV</button>
+        <button type="submit" name="action" value="import" class="secondary">Імпортувати TSV/CSV</button>
+    </form>
+
     <pre id="import-result" class="muted"></pre>
 </section>
 {% endblock %}
 
 {% block scripts %}
 <script>
-    document.querySelector("#import-form").addEventListener("submit", async (event) => {
+    const resultBox = document.querySelector("#import-result");
+
+    function showResult(result) {
+        resultBox.textContent = JSON.stringify(result, null, 2);
+    }
+
+    document.querySelector("#json-import-form").addEventListener("submit", async (event) => {
         event.preventDefault();
-        const file = document.querySelector("#import-file").files[0];
+        const file = document.querySelector("#json-import-file").files[0];
         if (!file) {
-            document.querySelector("#import-result").textContent = "Оберіть файл.";
+            resultBox.textContent = "Оберіть JSON-файл.";
             return;
         }
         const formData = new FormData();
         formData.append("file", file);
-        const result = await FactoryPlan.loadJson("/api/import/preview", {
+        const result = await FactoryPlan.loadJson("/api/import/file", {
             method: "POST",
             body: formData,
         });
-        document.querySelector("#import-result").textContent = JSON.stringify(result, null, 2);
+        showResult(result);
+    });
+
+    document.querySelector("#import-folder").addEventListener("click", async () => {
+        const result = await FactoryPlan.loadJson("/api/import/from-folder", {method: "POST"});
+        showResult(result);
+    });
+
+    document.querySelector("#clear-doors").addEventListener("click", async () => {
+        const confirmed = confirm("Видалити всі імпортовані двері, операції та розрахований план? Календар і правила черги залишаться.");
+        if (!confirmed) {
+            return;
+        }
+        try {
+            const result = await FactoryPlan.loadJson("/api/doors/clear", {method: "POST"});
+            const deleted = result.deleted;
+            resultBox.textContent = `Видалено: дверей ${deleted.doors}, операцій ${deleted.operations}, записів плану ${deleted.plan_items}, завантажень днів ${deleted.plan_daily_load}.`;
+        } catch (error) {
+            resultBox.textContent = `Помилка очищення: ${error.message}`;
+        }
+    });
+
+    document.querySelector("#import-form").addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const file = document.querySelector("#import-file").files[0];
+        const action = event.submitter.value;
+        if (!file) {
+            resultBox.textContent = "Оберіть TSV/CSV файл.";
+            return;
+        }
+        const formData = new FormData();
+        formData.append("file", file);
+        const result = await FactoryPlan.loadJson(action === "import" ? "/api/import" : "/api/import/preview", {
+            method: "POST",
+            body: formData,
+        });
+        showResult(result);
     });
 </script>
 {% endblock %}
-

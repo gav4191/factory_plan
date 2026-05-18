@@ -1,33 +1,664 @@
 {% extends "base.html" %}
 
 {% block content %}
+<style>
+    .calendar-page {
+        display: grid;
+        gap: 16px;
+    }
+
+    .calendar-page .calendar-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+    }
+
+    .calendar-page .calendar-title {
+        display: grid;
+        gap: 4px;
+    }
+
+    .calendar-page #calendar-range {
+        margin: 0;
+        font-size: 22px;
+        line-height: 1.2;
+    }
+
+    .calendar-page .calendar-nav {
+        display: inline-flex;
+        gap: 8px;
+    }
+
+    .calendar-page .calendar-nav-button {
+        width: 36px;
+        height: 36px;
+        padding: 0;
+        border-radius: 6px;
+        background: #475467;
+        color: #fff;
+        font-size: 20px;
+        line-height: 1;
+    }
+
+    .calendar-page .calendar-legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        color: var(--muted);
+        font-size: 13px;
+    }
+
+    .calendar-page .calendar-legend span {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+    }
+
+    .calendar-page .legend-dot {
+        width: 11px;
+        height: 11px;
+        border-radius: 50%;
+        border: 1px solid var(--line);
+    }
+
+    .calendar-page .legend-workday {
+        background: #e7f8ef;
+        border-color: #75c99d;
+    }
+
+    .calendar-page .legend-short {
+        background: #fff4d6;
+        border-color: #e6a700;
+    }
+
+    .calendar-page .legend-weekend {
+        background: #fde8e6;
+        border-color: #e07970;
+    }
+
+    .calendar-page .legend-overtime {
+        background: #bfead0;
+        border-color: #4ca66f;
+    }
+
+    .calendar-page .calendar-settings {
+        display: grid;
+        grid-template-columns: minmax(180px, 240px) minmax(220px, 1fr) auto;
+        align-items: end;
+        gap: 16px;
+        padding: 12px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #f8fafc;
+    }
+
+    .calendar-page .calendar-setting-field {
+        width: min(240px, 100%);
+        display: grid;
+        gap: 6px;
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+    .calendar-page .calendar-months {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(420px, 1fr));
+        gap: 20px;
+    }
+
+    .calendar-page .calendar-month {
+        min-width: 0;
+    }
+
+    .calendar-page .calendar-month h3 {
+        margin: 0 0 10px;
+        font-size: 18px;
+        line-height: 1.2;
+    }
+
+    .calendar-page .calendar-grid {
+        display: grid;
+        grid-template-columns: 38px repeat(7, minmax(0, 1fr));
+        border-top: 1px solid var(--line);
+        border-left: 1px solid var(--line);
+        background: #fff;
+    }
+
+    .calendar-page .calendar-weekday,
+    .calendar-page .calendar-week-number,
+    .calendar-page .calendar-week-corner {
+        min-height: 32px;
+        display: grid;
+        place-items: center;
+        border-right: 1px solid var(--line);
+        border-bottom: 1px solid var(--line);
+        background: #f8fafc;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .calendar-page .calendar-week-number {
+        background: #eef2f6;
+    }
+
+    .calendar-page button.calendar-day {
+        all: unset;
+        min-height: 72px;
+        border-right: 1px solid var(--line);
+        border-bottom: 1px solid var(--line);
+        padding: 7px;
+        display: grid;
+        align-content: space-between;
+        cursor: pointer;
+        color: var(--text);
+    }
+
+    .calendar-page button.calendar-day:hover,
+    .calendar-page button.calendar-day:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: -2px;
+    }
+
+    .calendar-page button.calendar-day.work-day {
+        background: #e7f8ef;
+    }
+
+    .calendar-page button.calendar-day.overtime-day {
+        background: #bfead0;
+    }
+
+    .calendar-page button.calendar-day.short-day {
+        background: #fff4d6;
+    }
+
+    .calendar-page button.calendar-day.weekend-day {
+        background: #fde8e6;
+        color: #912018;
+    }
+
+    .calendar-page button.calendar-day.past-day {
+        background: #f2f4f7;
+        color: #98a2b3;
+    }
+
+    .calendar-page button.calendar-day.past-day .day-hours {
+        color: #98a2b3;
+    }
+
+    .calendar-page .outside-month {
+        opacity: 0.42;
+    }
+
+    .calendar-page .day-number {
+        font-size: 14px;
+        font-weight: 700;
+    }
+
+    .calendar-page .day-hours {
+        justify-self: end;
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+    .calendar-page .day-hours:not(:empty)::after {
+        content: " год";
+        font-weight: 400;
+    }
+
+    .day-dialog {
+        width: min(420px, calc(100vw - 32px));
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 0;
+    }
+
+    .day-dialog::backdrop {
+        background: rgb(15 23 42 / 40%);
+    }
+
+    .day-dialog form {
+        padding: 18px;
+    }
+
+    .dialog-header {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 16px;
+    }
+
+    .dialog-header h2 {
+        margin: 0;
+        font-size: 20px;
+        line-height: 1.25;
+    }
+
+    .icon-button {
+        width: 34px;
+        height: 34px;
+        padding: 0;
+        border-radius: 6px;
+        background: #eef2f6;
+        color: var(--text);
+        font-size: 22px;
+        line-height: 1;
+    }
+
+    .field-row {
+        display: grid;
+        gap: 6px;
+        margin-bottom: 14px;
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+    .dialog-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 18px;
+    }
+
+    @media (max-width: 1180px) {
+        .calendar-page .calendar-months {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 720px) {
+        .calendar-page .calendar-toolbar {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .calendar-page .calendar-settings {
+            align-items: stretch;
+            grid-template-columns: 1fr;
+        }
+
+        .calendar-page button.calendar-day {
+            min-height: 56px;
+            padding: 5px;
+        }
+
+        .calendar-page .calendar-grid {
+            grid-template-columns: 30px repeat(7, minmax(34px, 1fr));
+            overflow-x: auto;
+        }
+    }
+</style>
+
 <header class="page-header">
     <div>
         <h1>Календар</h1>
-        <p class="muted">Робочі дні та кількість годин для планування.</p>
+        <p class="muted">Робочі, вихідні та скорочені дні для планування виробництва.</p>
     </div>
 </header>
 
-<section class="panel">
-    <table>
-        <thead>
-            <tr>
-                <th>Дата</th>
-                <th>Робочий день</th>
-                <th>Годин</th>
-            </tr>
-        </thead>
-        <tbody id="calendar-body"></tbody>
-    </table>
+<section class="panel calendar-page">
+    <div class="calendar-toolbar">
+        <div class="calendar-title">
+            <h2 id="calendar-range">Календар</h2>
+            <div id="calendar-status" class="status muted"></div>
+        </div>
+        <div class="calendar-nav">
+            <button id="calendar-prev" class="calendar-nav-button" type="button" aria-label="Попередній місяць">‹</button>
+            <button id="calendar-next" class="calendar-nav-button" type="button" aria-label="Наступний місяць">›</button>
+        </div>
+    </div>
+
+    <div class="calendar-legend" aria-label="Позначення календаря">
+        <span><i class="legend-dot legend-workday"></i>Робочий</span>
+        <span><i class="legend-dot legend-overtime"></i>Понад норму</span>
+        <span><i class="legend-dot legend-short"></i>Скорочений</span>
+        <span><i class="legend-dot legend-weekend"></i>Вихідний</span>
+    </div>
+
+    <div class="calendar-settings">
+        <label class="calendar-setting-field">
+            <span>Годин у робочому дні</span>
+            <input id="default-work-hours" type="number" min="1" max="24" step="1" value="8">
+        </label>
+        <label class="calendar-setting-field">
+            <span>Перезаповнити після дати</span>
+            <input id="refill-after-date" type="date">
+        </label>
+        <button id="refill-calendar" type="button">Перезаповнити години</button>
+    </div>
+
+    <div id="calendar-months" class="calendar-months"></div>
 </section>
+
+<dialog id="day-dialog" class="day-dialog">
+    <form method="dialog" id="day-form">
+        <header class="dialog-header">
+            <div>
+                <h2 id="dialog-title">День</h2>
+                <p id="dialog-subtitle" class="muted"></p>
+            </div>
+            <button class="icon-button" value="cancel" aria-label="Закрити" type="submit">×</button>
+        </header>
+
+        <label class="field-row">
+            <span>Тип дня</span>
+            <select name="is_working_day">
+                <option value="1">Робочий</option>
+                <option value="0">Вихідний</option>
+            </select>
+        </label>
+
+        <label class="field-row">
+            <span>Годин</span>
+            <input name="hours" type="number" min="0" step="1" required>
+        </label>
+
+        <div class="dialog-actions">
+            <button class="secondary" value="cancel" type="submit">Скасувати</button>
+            <button id="save-day" value="default" type="submit">Зберегти</button>
+        </div>
+    </form>
+</dialog>
 {% endblock %}
 
 {% block scripts %}
 <script>
-    const columns = ["date", "is_working_day", "hours"];
-    FactoryPlan.loadJson("/api/calendar")
-        .then(rows => FactoryPlan.renderRows(document.querySelector("#calendar-body"), rows, columns))
-        .catch(() => FactoryPlan.renderRows(document.querySelector("#calendar-body"), [], columns));
+    const calendarState = {
+        monthOffset: 0,
+        days: new Map(),
+        selectedDate: null,
+    };
+
+    const monthNames = [
+        "Січень", "Лютий", "Березень", "Квітень", "Травень", "Червень",
+        "Липень", "Серпень", "Вересень", "Жовтень", "Листопад", "Грудень",
+    ];
+    const dayNames = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Нд"];
+    let fullDayHours = 8;
+
+    const monthsEl = document.querySelector("#calendar-months");
+    const rangeEl = document.querySelector("#calendar-range");
+    const statusEl = document.querySelector("#calendar-status");
+    const dialog = document.querySelector("#day-dialog");
+    const dayForm = document.querySelector("#day-form");
+    const defaultHoursInput = document.querySelector("#default-work-hours");
+    const refillAfterInput = document.querySelector("#refill-after-date");
+    const dialogTitle = document.querySelector("#dialog-title");
+    const dialogSubtitle = document.querySelector("#dialog-subtitle");
+    defaultHoursInput.value = fullDayHours;
+    refillAfterInput.value = toDateKey(new Date());
+
+    function toDateKey(date) {
+        return [
+            date.getFullYear(),
+            String(date.getMonth() + 1).padStart(2, "0"),
+            String(date.getDate()).padStart(2, "0"),
+        ].join("-");
+    }
+
+    function fromDateKey(dateKey) {
+        const [year, month, day] = dateKey.split("-").map(Number);
+        return new Date(year, month - 1, day);
+    }
+
+    function mondayStartOffset(date) {
+        return (date.getDay() + 6) % 7;
+    }
+
+    function getIsoWeek(date) {
+        const target = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+        const dayNumber = target.getUTCDay() || 7;
+        target.setUTCDate(target.getUTCDate() + 4 - dayNumber);
+        const yearStart = new Date(Date.UTC(target.getUTCFullYear(), 0, 1));
+        return Math.ceil((((target - yearStart) / 86400000) + 1) / 7);
+    }
+
+    function addMonths(date, offset) {
+        return new Date(date.getFullYear(), date.getMonth() + offset, 1);
+    }
+
+    function formatDateLabel(dateKey) {
+        const date = fromDateKey(dateKey);
+        return `${date.getDate()} ${monthNames[date.getMonth()]} ${date.getFullYear()}`;
+    }
+
+    function normalizeDay(row) {
+        return {
+            date: row.date,
+            is_working_day: Boolean(row.is_working_day),
+            hours: Math.round(Number(row.hours)),
+        };
+    }
+
+    function effectiveDayForDate(day, date) {
+        const isDefaultWorkingDay = date.getDay() !== 0 && date.getDay() !== 6;
+        return day || {
+            is_working_day: isDefaultWorkingDay,
+            hours: isDefaultWorkingDay ? fullDayHours : 0,
+        };
+    }
+
+    function dayClass(day, date, isOutsideMonth) {
+        const dateKey = toDateKey(date);
+        const todayKey = toDateKey(new Date());
+        const effectiveDay = effectiveDayForDate(day, date);
+        const classes = ["calendar-day"];
+        if (isOutsideMonth) {
+            classes.push("outside-month");
+        }
+        if (!effectiveDay.is_working_day || effectiveDay.hours <= 0) {
+            classes.push("weekend-day");
+        } else if (effectiveDay.hours > fullDayHours) {
+            classes.push("overtime-day");
+        } else if (effectiveDay.hours < fullDayHours) {
+            classes.push("short-day");
+        } else {
+            classes.push("work-day");
+        }
+        if (dateKey < todayKey) {
+            classes.push("past-day");
+        }
+        return classes.join(" ");
+    }
+
+    function renderCalendar() {
+        monthsEl.innerHTML = "";
+
+        const baseDate = addMonths(new Date(), calendarState.monthOffset);
+        const visibleMonths = [baseDate, addMonths(baseDate, 1)];
+        rangeEl.textContent = `${monthNames[visibleMonths[0].getMonth()]} ${visibleMonths[0].getFullYear()} - ${monthNames[visibleMonths[1].getMonth()]} ${visibleMonths[1].getFullYear()}`;
+
+        for (const monthDate of visibleMonths) {
+            monthsEl.appendChild(renderMonth(monthDate));
+        }
+    }
+
+    function renderMonth(monthDate) {
+        const monthEl = document.createElement("article");
+        monthEl.className = "calendar-month";
+
+        const title = document.createElement("h3");
+        title.textContent = `${monthNames[monthDate.getMonth()]} ${monthDate.getFullYear()}`;
+        monthEl.appendChild(title);
+
+        const grid = document.createElement("div");
+        grid.className = "calendar-grid";
+
+        const corner = document.createElement("div");
+        corner.className = "calendar-week-corner";
+        corner.textContent = "Тж";
+        grid.appendChild(corner);
+
+        for (const name of dayNames) {
+            const header = document.createElement("div");
+            header.className = "calendar-weekday";
+            header.textContent = name;
+            grid.appendChild(header);
+        }
+
+        const firstDay = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1);
+        const gridStart = new Date(firstDay);
+        gridStart.setDate(firstDay.getDate() - mondayStartOffset(firstDay));
+
+        for (let week = 0; week < 6; week += 1) {
+            const weekDate = new Date(gridStart);
+            weekDate.setDate(gridStart.getDate() + week * 7);
+
+            const weekNumber = document.createElement("div");
+            weekNumber.className = "calendar-week-number";
+            weekNumber.textContent = getIsoWeek(weekDate);
+            grid.appendChild(weekNumber);
+
+            for (let dayIndex = 0; dayIndex < 7; dayIndex += 1) {
+                const current = new Date(gridStart);
+                current.setDate(gridStart.getDate() + week * 7 + dayIndex);
+                const dateKey = toDateKey(current);
+                const day = calendarState.days.get(dateKey);
+                const effectiveDay = effectiveDayForDate(day, current);
+                const isOutsideMonth = current.getMonth() !== monthDate.getMonth();
+
+                const button = document.createElement("button");
+                button.type = "button";
+                button.className = dayClass(day, current, isOutsideMonth);
+                button.dataset.date = dateKey;
+                button.innerHTML = `
+                    <span class="day-number">${current.getDate()}</span>
+                    <span class="day-hours">${effectiveDay.hours}</span>
+                `;
+                button.addEventListener("click", () => openDayDialog(dateKey, day));
+                grid.appendChild(button);
+            }
+        }
+
+        monthEl.appendChild(grid);
+        return monthEl;
+    }
+
+    function openDayDialog(dateKey, day) {
+        const date = fromDateKey(dateKey);
+        const safeDay = effectiveDayForDate(day, date);
+
+        calendarState.selectedDate = dateKey;
+        dialogTitle.textContent = formatDateLabel(dateKey);
+        dialogSubtitle.textContent = dayNames[mondayStartOffset(date)];
+        dayForm.elements.is_working_day.value = safeDay.is_working_day ? "1" : "0";
+        dayForm.elements.hours.value = safeDay.hours;
+        dialog.showModal();
+    }
+
+    function setDayFormWorkingState(isWorkingDay) {
+        dayForm.elements.is_working_day.value = isWorkingDay ? "1" : "0";
+        dayForm.elements.hours.value = isWorkingDay ? fullDayHours : 0;
+    }
+
+    function normalizeHoursInput() {
+        const hours = Math.max(0, Math.round(Number(dayForm.elements.hours.value) || 0));
+        dayForm.elements.hours.value = hours;
+        dayForm.elements.is_working_day.value = hours > 0 ? "1" : "0";
+    }
+
+    async function refreshCalendar() {
+        const rows = await FactoryPlan.loadJson("/api/calendar");
+        calendarState.days = new Map(rows.map((row) => [row.date, normalizeDay(row)]));
+        renderCalendar();
+    }
+
+    async function refreshSettings() {
+        const settings = await FactoryPlan.loadJson("/api/calendar/settings").catch(() => ({
+            default_work_hours: fullDayHours,
+        }));
+        fullDayHours = Math.max(1, Math.min(24, Math.round(Number(settings.default_work_hours) || 8)));
+        defaultHoursInput.value = fullDayHours;
+    }
+
+    document.querySelector("#calendar-prev").addEventListener("click", () => {
+        calendarState.monthOffset -= 1;
+        renderCalendar();
+    });
+
+    document.querySelector("#calendar-next").addEventListener("click", () => {
+        calendarState.monthOffset += 1;
+        renderCalendar();
+    });
+
+    defaultHoursInput.addEventListener("change", async () => {
+        fullDayHours = Math.max(1, Math.min(24, Math.round(Number(defaultHoursInput.value) || 8)));
+        defaultHoursInput.value = fullDayHours;
+        const result = await FactoryPlan.sendJson(
+            "/api/calendar/settings",
+            {default_work_hours: fullDayHours},
+            "PUT"
+        ).catch(() => ({default_work_hours: fullDayHours}));
+        fullDayHours = result.default_work_hours;
+        defaultHoursInput.value = fullDayHours;
+        statusEl.textContent = `Годин у робочому дні: ${fullDayHours}`;
+        renderCalendar();
+    });
+
+    document.querySelector("#refill-calendar").addEventListener("click", async () => {
+        const afterDate = refillAfterInput.value;
+        if (!afterDate) {
+            statusEl.textContent = "Оберіть дату для перезаповнення";
+            return;
+        }
+
+        const result = await FactoryPlan.sendJson("/api/calendar/refill-after", {
+            after_date: afterDate,
+            days: 365,
+            hours: fullDayHours,
+        }).catch(() => {
+            statusEl.textContent = "Не вдалося перезаповнити календар";
+            return null;
+        });
+        if (!result) {
+            return;
+        }
+        statusEl.textContent = `Перезаповнено днів: ${result.changed_days}, починаючи з ${result.start_date}`;
+        await refreshCalendar();
+    });
+
+    dayForm.elements.is_working_day.addEventListener("change", () => {
+        setDayFormWorkingState(dayForm.elements.is_working_day.value === "1");
+    });
+
+    dayForm.elements.hours.addEventListener("change", normalizeHoursInput);
+    dayForm.elements.hours.addEventListener("input", () => {
+        const hours = Math.round(Number(dayForm.elements.hours.value) || 0);
+        dayForm.elements.is_working_day.value = hours > 0 ? "1" : "0";
+    });
+
+    dayForm.addEventListener("submit", async (event) => {
+        if (event.submitter && event.submitter.value === "cancel") {
+            return;
+        }
+
+        event.preventDefault();
+        const dateKey = calendarState.selectedDate;
+        normalizeHoursInput();
+        const hours = Number(dayForm.elements.hours.value);
+        const payload = {
+            is_working_day: hours > 0,
+            hours,
+        };
+
+        await FactoryPlan.sendJson(`/api/calendar/${dateKey}`, payload, "PUT");
+        statusEl.textContent = `Збережено ${formatDateLabel(dateKey)}`;
+        dialog.close();
+        await refreshCalendar();
+    });
+
+    async function initializeCalendar() {
+        await refreshSettings();
+        await refreshCalendar();
+    }
+
+    initializeCalendar().catch(() => {
+        statusEl.textContent = "Не вдалося завантажити календар";
+        renderCalendar();
+    });
 </script>
 {% endblock %}
-

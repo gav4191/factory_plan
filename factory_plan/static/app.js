@@ -6,6 +6,14 @@ async function loadJson(url, options = {}) {
     return response.json();
 }
 
+async function sendJson(url, payload, method = "POST") {
+    return loadJson(url, {
+        method,
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(payload),
+    });
+}
+
 function renderRows(tableBody, rows, columns) {
     tableBody.innerHTML = "";
 
@@ -33,6 +41,6 @@ function renderRows(tableBody, rows, columns) {
 
 window.FactoryPlan = {
     loadJson,
+    sendJson,
     renderRows,
 };
-

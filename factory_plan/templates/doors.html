@@ -9,6 +9,14 @@
 </header>
 
 <section class="panel">
+    <form id="door-filters" class="filters">
+        <input name="serial" placeholder="Серія">
+        <input name="counterparty" placeholder="Контрагент">
+        <input name="order_number" placeholder="Замовлення">
+        <input name="door_type" placeholder="Тип">
+        <input name="model" placeholder="Модель">
+        <button type="submit">Фільтрувати</button>
+    </form>
     <table>
         <thead>
             <tr>
@@ -31,9 +39,24 @@
 {% block scripts %}
 <script>
     const columns = ["serial", "planned_date", "order_date", "counterparty", "order_number", "door_type", "model", "size", "leaf_count"];
-    FactoryPlan.loadJson("/api/doors")
-        .then(rows => FactoryPlan.renderRows(document.querySelector("#doors-body"), rows, columns))
-        .catch(() => FactoryPlan.renderRows(document.querySelector("#doors-body"), [], columns));
+    const body = document.querySelector("#doors-body");
+
+    async function refreshDoors(query = "") {
+        const rows = await FactoryPlan.loadJson(`/api/doors${query}`);
+        FactoryPlan.renderRows(body, rows, columns);
+    }
+
+    document.querySelector("#door-filters").addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const params = new URLSearchParams(new FormData(event.currentTarget));
+        for (const [key, value] of [...params.entries()]) {
+            if (!value) {
+                params.delete(key);
+            }
+        }
+        await refreshDoors(params.toString() ? `?${params}` : "");
+    });
+
+    refreshDoors().catch(() => FactoryPlan.renderRows(body, [], columns));
 </script>
 {% endblock %}
-

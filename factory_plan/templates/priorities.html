@@ -4,11 +4,23 @@
 <header class="page-header">
     <div>
         <h1>Коригування черги</h1>
-        <p class="muted">Правила ручного руху серій, замовлень або контрагентів вперед і назад.</p>
+        <p class="muted">Правила ручного пріоритету для серії, замовлення або контрагента.</p>
     </div>
 </header>
 
 <section class="panel">
+    <form id="priority-form" class="grid-form">
+        <select name="rule_type">
+            <option value="serial">Серія</option>
+            <option value="order_number">Номер замовлення</option>
+            <option value="counterparty">Контрагент</option>
+        </select>
+        <input name="rule_value" placeholder="Значення" required>
+        <input name="priority" type="number" value="-10" required>
+        <input name="comment" placeholder="Коментар">
+        <button type="submit">Додати</button>
+    </form>
+    <div id="priorities-status" class="status muted"></div>
     <table>
         <thead>
             <tr>
@@ -17,6 +29,7 @@
                 <th>Пріоритет</th>
                 <th>Коментар</th>
                 <th>Створено</th>
+                <th></th>
             </tr>
         </thead>
         <tbody id="priorities-body"></tbody>
@@ -26,10 +39,53 @@
 
 {% block scripts %}
 <script>
-    const columns = ["rule_type", "rule_value", "priority", "comment", "created_at"];
-    FactoryPlan.loadJson("/api/priorities")
-        .then(rows => FactoryPlan.renderRows(document.querySelector("#priorities-body"), rows, columns))
-        .catch(() => FactoryPlan.renderRows(document.querySelector("#priorities-body"), [], columns));
+    const body = document.querySelector("#priorities-body");
+    const status = document.querySelector("#priorities-status");
+
+    async function refreshPriorities() {
+        const rows = await FactoryPlan.loadJson("/api/priorities");
+        body.innerHTML = "";
+        if (!rows.length) {
+            FactoryPlan.renderRows(body, rows, ["rule_type", "rule_value", "priority", "comment", "created_at", ""]);
+            return;
+        }
+        for (const row of rows) {
+            const tr = document.createElement("tr");
+            for (const column of ["rule_type", "rule_value", "priority", "comment", "created_at"]) {
+                const td = document.createElement("td");
+                td.textContent = row[column] ?? "";
+                tr.appendChild(td);
+            }
+            const action = document.createElement("td");
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "secondary";
+            button.textContent = "Видалити";
+            button.addEventListener("click", async () => {
+                await FactoryPlan.loadJson(`/api/priorities/${row.id}`, {method: "DELETE"});
+                status.textContent = "Правило видалено";
+                await refreshPriorities();
+            });
+            action.appendChild(button);
+            tr.appendChild(action);
+            body.appendChild(tr);
+        }
+    }
+
+    document.querySelector("#priority-form").addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const form = new FormData(event.currentTarget);
+        await FactoryPlan.sendJson("/api/priorities", {
+            rule_type: form.get("rule_type"),
+            rule_value: form.get("rule_value"),
+            priority: Number(form.get("priority")),
+            comment: form.get("comment"),
+        });
+        event.currentTarget.reset();
+        status.textContent = "Правило додано";
+        await refreshPriorities();
+    });
+
+    refreshPriorities().catch(() => FactoryPlan.renderRows(body, [], ["rule_type", "rule_value", "priority", "comment", "created_at"]));
 </script>
 {% endblock %}
-

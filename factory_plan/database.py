@@ -68,6 +68,11 @@ CREATE TABLE IF NOT EXISTS plan_daily_load (
     overflow_hours REAL NOT NULL,
     door_count INTEGER NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS app_settings (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+);
 """
 
 
@@ -80,6 +85,9 @@ def get_connection() -> sqlite3.Connection:
 
 
 def initialize_database() -> None:
-    with get_connection() as connection:
+    connection = get_connection()
+    try:
         connection.executescript(SCHEMA)
-
+        connection.commit()
+    finally:
+        connection.close()

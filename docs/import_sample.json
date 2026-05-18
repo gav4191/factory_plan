@@ -1,0 +1,88 @@
+{
+  "format": "factory_plan_doors",
+  "version": 1,
+  "generated_at": "2026-05-18T15:30:00+03:00",
+  "source": {
+    "system": "1C",
+    "database": "production",
+    "organization": "Назва організації"
+  },
+  "doors": [
+    {
+      "serial": "A-000123",
+      "order_date": "2026-05-10",
+      "planned_date": "2026-05-25",
+      "counterparty": "ТОВ Приклад",
+      "order_number": "ЗМ-4567",
+      "door_type": "Вхідні",
+      "model": "Модель 21",
+      "size": "960x2050",
+      "leaf_count": 1,
+      "is_custom": false,
+      "operations": {
+        "blank": {
+          "done": false,
+          "hours": 1.5
+        },
+        "welding": {
+          "done": false,
+          "hours": 2.0
+        },
+        "painting": {
+          "done": false,
+          "hours": 1.25
+        },
+        "mdf": {
+          "done": false,
+          "hours": null
+        },
+        "assembly": {
+          "done": false,
+          "hours": 1.75
+        },
+        "packing": {
+          "done": false,
+          "hours": 0.5
+        }
+      }
+    },
+    {
+      "serial": "A-000124",
+      "order_date": "2026-05-11",
+      "planned_date": "2026-05-26",
+      "counterparty": "ТОВ Приклад",
+      "order_number": "ЗМ-4568",
+      "door_type": "Міжкімнатні",
+      "model": "Модель 14",
+      "size": "800x2000",
+      "leaf_count": 2,
+      "is_custom": true,
+      "operations": {
+        "blank": {
+          "done": true,
+          "hours": 1.0
+        },
+        "welding": {
+          "done": false,
+          "hours": 1.5
+        },
+        "painting": {
+          "done": false,
+          "hours": 1.0
+        },
+        "mdf": {
+          "done": false,
+          "hours": 2.0
+        },
+        "assembly": {
+          "done": false,
+          "hours": 2.25
+        },
+        "packing": {
+          "done": false,
+          "hours": 0.75
+        }
+      }
+    }
+  ]
+}
