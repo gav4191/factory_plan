@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block content %}
+<header class="page-header">
+    <div>
+        <h1>Двері</h1>
+        <p class="muted">Імпортовані двері, замовлення, моделі та розміри.</p>
+    </div>
+</header>
+
+<section class="panel">
+    <table>
+        <thead>
+            <tr>
+                <th>Серія</th>
+                <th>Планова дата</th>
+                <th>Дата заказу</th>
+                <th>Контрагент</th>
+                <th>Замовлення</th>
+                <th>Тип</th>
+                <th>Модель</th>
+                <th>Розмір</th>
+                <th>Створок</th>
+            </tr>
+        </thead>
+        <tbody id="doors-body"></tbody>
+    </table>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const columns = ["serial", "planned_date", "order_date", "counterparty", "order_number", "door_type", "model", "size", "leaf_count"];
+    FactoryPlan.loadJson("/api/doors")
+        .then(rows => FactoryPlan.renderRows(document.querySelector("#doors-body"), rows, columns))
+        .catch(() => FactoryPlan.renderRows(document.querySelector("#doors-body"), [], columns));
+</script>
+{% endblock %}
+

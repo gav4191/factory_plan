@@ -1,0 +1,2 @@
+"""Factory production planning application."""
+

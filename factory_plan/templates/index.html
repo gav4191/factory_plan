@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block content %}
+<header class="page-header">
+    <div>
+        <h1>План по днях</h1>
+        <p class="muted">Зведення завантаження етапів після розрахунку плану.</p>
+    </div>
+    <div class="actions">
+        <button type="button">Перерахувати план</button>
+    </div>
+</header>
+
+<section class="panel">
+    <table>
+        <thead>
+            <tr>
+                <th>Дата</th>
+                <th>Етап</th>
+                <th>Ємність</th>
+                <th>Заплановано</th>
+                <th>Перевищення</th>
+                <th>Дверей</th>
+            </tr>
+        </thead>
+        <tbody id="plan-load-body"></tbody>
+    </table>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const columns = ["plan_date", "operation", "capacity_hours", "planned_hours", "overflow_hours", "door_count"];
+    FactoryPlan.loadJson("/api/plan/load")
+        .then(rows => FactoryPlan.renderRows(document.querySelector("#plan-load-body"), rows, columns))
+        .catch(() => FactoryPlan.renderRows(document.querySelector("#plan-load-body"), [], columns));
+</script>
+{% endblock %}
+

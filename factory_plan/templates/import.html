@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block content %}
+<header class="page-header">
+    <div>
+        <h1>Імпорт</h1>
+        <p class="muted">Завантаження файлу дверей і попередня перевірка колонок.</p>
+    </div>
+</header>
+
+<section class="panel">
+    <form id="import-form">
+        <input id="import-file" name="file" type="file" accept=".txt,.tsv,.csv">
+        <button type="submit">Перевірити файл</button>
+    </form>
+    <pre id="import-result" class="muted"></pre>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.querySelector("#import-form").addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const file = document.querySelector("#import-file").files[0];
+        if (!file) {
+            document.querySelector("#import-result").textContent = "Оберіть файл.";
+            return;
+        }
+        const formData = new FormData();
+        formData.append("file", file);
+        const result = await FactoryPlan.loadJson("/api/import/preview", {
+            method: "POST",
+            body: formData,
+        });
+        document.querySelector("#import-result").textContent = JSON.stringify(result, null, 2);
+    });
+</script>
+{% endblock %}
+

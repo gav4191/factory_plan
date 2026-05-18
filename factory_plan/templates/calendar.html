@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+<header class="page-header">
+    <div>
+        <h1>Календар</h1>
+        <p class="muted">Робочі дні та кількість годин для планування.</p>
+    </div>
+</header>
+
+<section class="panel">
+    <table>
+        <thead>
+            <tr>
+                <th>Дата</th>
+                <th>Робочий день</th>
+                <th>Годин</th>
+            </tr>
+        </thead>
+        <tbody id="calendar-body"></tbody>
+    </table>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const columns = ["date", "is_working_day", "hours"];
+    FactoryPlan.loadJson("/api/calendar")
+        .then(rows => FactoryPlan.renderRows(document.querySelector("#calendar-body"), rows, columns))
+        .catch(() => FactoryPlan.renderRows(document.querySelector("#calendar-body"), [], columns));
+</script>
+{% endblock %}
+

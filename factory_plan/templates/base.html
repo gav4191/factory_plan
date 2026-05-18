@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="uk">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ title }} · Factory Plan</title>
+    <link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="sidebar">
+            <div class="brand">Factory Plan</div>
+            <nav class="nav">
+                <a class="{{ 'active' if active_page == 'plan' else '' }}" href="/">План</a>
+                <a class="{{ 'active' if active_page == 'import' else '' }}" href="/import">Імпорт</a>
+                <a class="{{ 'active' if active_page == 'calendar' else '' }}" href="/calendar">Календар</a>
+                <a class="{{ 'active' if active_page == 'priorities' else '' }}" href="/priorities">Черга</a>
+                <a class="{{ 'active' if active_page == 'doors' else '' }}" href="/doors">Двері</a>
+            </nav>
+        </aside>
+        <main class="content">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+    <script src="/static/app.js"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>
+

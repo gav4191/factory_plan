@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block content %}
+<header class="page-header">
+    <div>
+        <h1>Коригування черги</h1>
+        <p class="muted">Правила ручного руху серій, замовлень або контрагентів вперед і назад.</p>
+    </div>
+</header>
+
+<section class="panel">
+    <table>
+        <thead>
+            <tr>
+                <th>Тип</th>
+                <th>Значення</th>
+                <th>Пріоритет</th>
+                <th>Коментар</th>
+                <th>Створено</th>
+            </tr>
+        </thead>
+        <tbody id="priorities-body"></tbody>
+    </table>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const columns = ["rule_type", "rule_value", "priority", "comment", "created_at"];
+    FactoryPlan.loadJson("/api/priorities")
+        .then(rows => FactoryPlan.renderRows(document.querySelector("#priorities-body"), rows, columns))
+        .catch(() => FactoryPlan.renderRows(document.querySelector("#priorities-body"), [], columns));
+</script>
+{% endblock %}
+
